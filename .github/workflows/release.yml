@@ -1,8 +1,8 @@
-name: booking-fe workflow
+name: booking-be workflow
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/app
+  IMAGE_NAME: ${{ github.repository }}/accomodation
 
 on:
   push:
@@ -10,14 +10,6 @@ on:
       - main
       - develop
       - master
-    # paths:
-    #   - "/app"
-  # pull_request:
-  #   branches:
-  #     - main
-  #     - develop
-  #   paths:
-  #     - "/app"
 
 permissions:
   contents: write
@@ -30,41 +22,45 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
+      - name: Set Up JDK
+        uses: actions/setup-java@v3
         with:
-          node-version: "20"
+          java-version: "17" # Update to match your Java version
+          distribution: "temurin"
 
-      - name: Install Dependencies
-        run: npm ci
-        working-directory: ./app
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Build Application
-        run: npm run build
-        working-directory: ./app
+      - name: Install Dependencies and Build
+        run: mvn clean install -DskipTests
 
-      # - name: Run Unit Tests
-      #   run: npm test
+      - name: Run Unit Tests
+        run: mvn test
 
-      # - name: Run Integration Tests
-      #   run: npm run test:integration
+      - name: Package Application
+        run: mvn package -DskipTests
 
   push-to-ghcr:
     runs-on: ubuntu-latest
     environment:
-      name: booking-fe-env 
+      name: booking-be-env
 
     steps:
-      - name: "Checkout GitHub Action"
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Semantic Release
         id: semantic_release
         uses: cycjimmy/semantic-release-action@v4
         with:
-          working_directory: ./app
+          working_directory: .
         env:
           GH_TOKEN: ${{ secrets.BOOKING_FE_TOKEN }}
           DEBUG: "semantic-release:*"
@@ -96,18 +92,12 @@ jobs:
             type=raw,value=latest
             type=semver,pattern={{steps.semantic_release.outputs.new_release_version}}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+      - name : kaniko
+        uses: int128/kaniko-action@v1
         with:
           context: ./app
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-
-      # Temp fix for caching issue
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache: true
+          cache-repository: ghcr.io/${{ github.repository }}/cache
