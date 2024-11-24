@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AccommodationServiceApplication {
 
 	public static void main(String[] args) {
+		// System.out.println("tu samm");
 		SpringApplication.run(AccommodationServiceApplication.class, args);
 	}
 
