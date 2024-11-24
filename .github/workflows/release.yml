@@ -41,9 +41,11 @@ jobs:
 
       - name: Run Unit Tests
         run: mvn test
+        working-directory: ./accommodation_service-main
 
       - name: Package Application
         run: mvn package -DskipTests
+        working-directory: ./accommodation_service-main
 
   push-to-ghcr:
     runs-on: ubuntu-latest
@@ -92,10 +94,10 @@ jobs:
             type=raw,value=latest
             type=semver,pattern={{steps.semantic_release.outputs.new_release_version}}
 
-      - name : kaniko
+      - name: kaniko
         uses: int128/kaniko-action@v1
         with:
-          context: ./app
+          context: ./accommodation_service-main
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
