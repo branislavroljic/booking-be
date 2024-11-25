@@ -49,6 +49,9 @@ jobs:
         working-directory: ./accommodation_service-main
         
   versioning:
+    environment:
+        name: booking-be-env
+        
     name: Bump to new version
     runs-on: ubuntu-latest
     permissions:
