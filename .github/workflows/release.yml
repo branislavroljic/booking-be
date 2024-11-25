@@ -67,12 +67,14 @@ jobs:
   
       - name: Bump version and push tag
         id: bump-version
-        uses: anothrNick/github-tag-action@1
+        uses: anothrNick/github-tag-action@master
         env:
+          VERBOSE: true
           GITHUB_TOKEN: ${{ secrets.BOOKING_BE_TOKEN }}
           MAJOR_STRING_TOKEN: major
           MINOR_STRING_TOKEN: feat
           PATCH_STRING_TOKEN: fix
+          DEBUG: "semantic-release:*"
 
   push-to-ghcr:
     runs-on: ubuntu-latest
