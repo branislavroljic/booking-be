@@ -63,7 +63,7 @@ jobs:
   
       - name: Bump version and push tag
         id: bump-version
-        uses: anothrNick/github-tag-action@latest
+        uses: anothrNick/github-tag-action@1
         env:
           GITHUB_TOKEN: ${{ secrets.BOOKING_BE_TOKEN }}
           MAJOR_STRING_TOKEN: major
