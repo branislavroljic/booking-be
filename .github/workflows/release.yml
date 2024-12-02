@@ -63,10 +63,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: "0"
-      - name: Debug GITHUB_TOKEN
-        run: echo "Token jee ${GITHUB_TOKEN}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.BOOKING_BE_TOKEN }}
 
       - name: Bump version and push tag
         id: bump-version
@@ -79,6 +75,16 @@ jobs:
           MINOR_STRING_TOKEN: feat
           PATCH_STRING_TOKEN: fix
           DEBUG: "semantic-release:*"
+
+      - name: Create GitHub Release
+        uses: comnoco/create-release@v2
+        with:
+          tag_name: ${{ steps.bump-version.outputs.new_tag }}
+          release_name: v${{ steps.bump-version.outputs.new_tag }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOOKING_BE_TOKEN }}
 
   push-to-ghcr:
     runs-on: ubuntu-latest
