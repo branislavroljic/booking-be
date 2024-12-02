@@ -77,14 +77,20 @@ jobs:
           DEBUG: "semantic-release:*"
 
       - name: Create GitHub Release
-        uses: comnoco/create-release@v2
-        with:
-          tag_name: ${{ steps.bump-version.outputs.new_tag }}
-          release_name: v${{ steps.bump-version.outputs.new_tag }}
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.BOOKING_BE_TOKEN }}
+          tag: ${{ steps.bump-version.outputs.new_tag }}
+        run: |
+          if [[ "$tag" != v* ]]; then
+            title="v$tag"
+          else
+            title="$tag"
+          fi
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="$title" \
+              --generate-notes 
+    
 
   push-to-ghcr:
     runs-on: ubuntu-latest
